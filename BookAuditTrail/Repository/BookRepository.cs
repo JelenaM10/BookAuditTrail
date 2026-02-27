@@ -21,6 +21,22 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
             .ToListAsync();
     }
 
+    public async Task<(List<Book> Items, int TotalCount)> GetAllAsync(int pageNumber, int pageSize)
+    {
+        var query = _context.Books
+            .Include(b => b.Authors)
+            .OrderByDescending(b => b.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
     public async Task<Book> AddAsync(Book book)
     {
         _context.Books.Add(book);

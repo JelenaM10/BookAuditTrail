@@ -9,9 +9,9 @@ public class BooksController(IBookService bookService) : ControllerBase
     private readonly IBookService _bookService = bookService;
 
     [HttpGet]
-    public async Task<ActionResult<List<BookResponse>>> GetAll()
+    public async Task<ActionResult<PagedResponse<BookResponse>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var books = await _bookService.GetAllBooksAsync();
+        var books = await _bookService.GetAllBooksAsync(pageNumber, pageSize);
         return Ok(books);
     }
 

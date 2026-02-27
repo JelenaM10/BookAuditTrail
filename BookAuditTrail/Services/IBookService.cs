@@ -7,4 +7,5 @@ public interface IBookService
     Task<BookResponse> UpdateBookAsync(int id, UpdateBookRequest request);
     Task<BookResponse?> GetBookByIdAsync(int id);
     Task<List<BookResponse>> GetAllBooksAsync();
+    Task<PagedResponse<BookResponse>> GetAllBooksAsync(int pageNumber, int pageSize);
 }

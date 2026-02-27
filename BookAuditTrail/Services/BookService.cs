@@ -191,6 +191,18 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
         return books.Select(MapToResponse).ToList();
     }
 
+    public async Task<PagedResponse<BookResponse>> GetAllBooksAsync(int pageNumber, int pageSize)
+    {
+        var (books, totalCount) = await _bookRepository.GetAllAsync(pageNumber, pageSize);
+        return new PagedResponse<BookResponse>
+        {
+            Items = books.Select(MapToResponse).ToList(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
     private static BookResponse MapToResponse(Book book)
     {
         return new BookResponse
