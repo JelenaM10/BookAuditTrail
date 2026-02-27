@@ -18,6 +18,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+await SeedData.SeedAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
