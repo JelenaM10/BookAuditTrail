@@ -48,6 +48,7 @@ public class BookAuditTrailDbContext(DbContextOptions<BookAuditTrailDbContext> o
             entity.Property(a => a.ChangedAt).IsRequired();
 
             entity.HasIndex(a => new { a.BookId, a.ChangedAt });
+            entity.HasIndex(a => a.ChangedAt);
         });
     }
 }
