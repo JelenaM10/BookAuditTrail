@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookAuditTrail", "BookAuditTrail\BookAuditTrail.csproj", "{036C450C-2EF2-4FE1-8AE6-61752790F864}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{036C450C-2EF2-4FE1-8AE6-61752790F864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{036C450C-2EF2-4FE1-8AE6-61752790F864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{036C450C-2EF2-4FE1-8AE6-61752790F864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{036C450C-2EF2-4FE1-8AE6-61752790F864}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {73D404F5-06AF-498B-B1BB-49D6D4AB4ABC}
+	EndGlobalSection
+EndGlobal
