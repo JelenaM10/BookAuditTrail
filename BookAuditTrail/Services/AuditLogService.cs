@@ -32,51 +32,96 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
 
     public async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedAuditLogsAsync(AuditLogQueryParameters parameters)
     {
-        var query = _auditLogRepository.GetQueryable().Include(a => a.Book).AsQueryable();
+        var query = _auditLogRepository.GetQueryable().AsQueryable();
 
         query = ApplyFilters(query, parameters);
-        query = ApplyOrdering(query, parameters);
 
         var groupByField = parameters.GroupBy ?? GroupByField.BookId;
 
-        var allItems = await query.ToListAsync();
+        if (groupByField == GroupByField.Date)
+            return await GetGroupedByDateAsync(query, parameters);
 
-        var grouped = groupByField switch
-        {
-            GroupByField.BookId => allItems.GroupBy(a => a.BookId.ToString())
-                .Select(g => new GroupedAuditLogResponse
-                {
-                    GroupKey = g.First().Book?.Title ?? g.Key,
-                    Count = g.Count(),
-                    Items = g.Select(a => MapToResponse(a)).ToList()
-                }),
-            GroupByField.Date => allItems.GroupBy(a => a.ChangedAt.Date.ToString("yyyy-MM-dd"))
-                .Select(g => new GroupedAuditLogResponse
-                {
-                    GroupKey = g.Key,
-                    Count = g.Count(),
-                    Items = g.Select(a => MapToResponse(a)).ToList()
-                }),
-            _ => allItems.GroupBy(a => a.BookId.ToString())
-                .Select(g => new GroupedAuditLogResponse
-                {
-                    GroupKey = g.First().Book?.Title ?? g.Key,
-                    Count = g.Count(),
-                    Items = g.Select(a => MapToResponse(a)).ToList()
-                })
-        };
+        return await GetGroupedByBookIdAsync(query, parameters);
+    }
 
-        var groupedList = grouped.ToList();
-        var totalCount = groupedList.Count;
+    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByBookIdAsync(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
+    {
+        var groupQuery = query
+            .GroupBy(a => a.BookId)
+            .Select(g => new { BookId = g.Key, Count = g.Count() });
 
-        var pagedGroups = groupedList
+        var totalCount = await groupQuery.CountAsync();
+
+        var pagedGroups = await groupQuery
+            .OrderByDescending(g => g.Count)
             .Skip((parameters.PageNumber - 1) * parameters.PageSize)
             .Take(parameters.PageSize)
-            .ToList();
+            .ToListAsync();
+
+        var bookIds = pagedGroups.Select(g => g.BookId).ToList();
+
+        var items = await query
+            .Include(a => a.Book)
+            .Where(a => bookIds.Contains(a.BookId))
+            .OrderByDescending(a => a.ChangedAt)
+            .ToListAsync();
+
+        var result = pagedGroups.Select(g =>
+        {
+            var groupItems = items.Where(a => a.BookId == g.BookId).ToList();
+            return new GroupedAuditLogResponse
+            {
+                GroupKey = groupItems.FirstOrDefault()?.Book?.Title ?? g.BookId.ToString(),
+                Count = g.Count,
+                Items = groupItems.Select(a => MapToResponse(a)).ToList()
+            };
+        }).ToList();
 
         return new PagedResponse<GroupedAuditLogResponse>
         {
-            Items = pagedGroups,
+            Items = result,
+            TotalCount = totalCount,
+            PageNumber = parameters.PageNumber,
+            PageSize = parameters.PageSize
+        };
+    }
+
+    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByDateAsync(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
+    {
+        var groupQuery = query
+            .GroupBy(a => a.ChangedAt.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() });
+
+        var totalCount = await groupQuery.CountAsync();
+
+        var pagedGroups = await groupQuery
+            .OrderByDescending(g => g.Date)
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync();
+
+        var dates = pagedGroups.Select(g => g.Date).ToList();
+
+        var items = await query
+            .Include(a => a.Book)
+            .Where(a => dates.Contains(a.ChangedAt.Date))
+            .OrderByDescending(a => a.ChangedAt)
+            .ToListAsync();
+
+        var result = pagedGroups.Select(g =>
+        {
+            var groupItems = items.Where(a => a.ChangedAt.Date == g.Date).ToList();
+            return new GroupedAuditLogResponse
+            {
+                GroupKey = g.Date.ToString("yyyy-MM-dd"),
+                Count = g.Count,
+                Items = groupItems.Select(a => MapToResponse(a)).ToList()
+            };
+        }).ToList();
+
+        return new PagedResponse<GroupedAuditLogResponse>
+        {
+            Items = result,
             TotalCount = totalCount,
             PageNumber = parameters.PageNumber,
             PageSize = parameters.PageSize
