@@ -16,16 +16,19 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
             UpdatedAt = DateTime.UtcNow
         };
 
-        foreach (var authorName in request.Authors)
-        {
-            var author = await _bookRepository.GetAuthorByNameAsync(authorName);
-            if (author == null)
-            {
-                author = new Author { Name = authorName };
-                author = await _bookRepository.AddAuthorAsync(author);
-            }
+        var existingAuthors = await _bookRepository.GetAuthorsByNamesAsync(request.Authors);
+        var existingNames = existingAuthors.Select(a => a.Name).ToHashSet();
+
+        var newAuthors = request.Authors
+            .Where(name => !existingNames.Contains(name))
+            .Select(name => new Author { Name = name })
+            .ToList();
+
+        if (newAuthors.Any())
+            await _bookRepository.AddAuthorsAsync(newAuthors);
+
+        foreach (var author in existingAuthors.Concat(newAuthors))
             book.Authors.Add(author);
-        }
 
         book = await _bookRepository.AddAsync(book);
 
