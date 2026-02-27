@@ -166,6 +166,19 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
                     var newAuthors = missingNames.Select(name => new Author { Name = name }).ToList();
                     await _bookRepository.AddAuthorsAsync(newAuthors);
                     ((List<Author>)book.Authors).AddRange(newAuthors);
+
+                    foreach (var author in newAuthors)
+                    {
+                        auditLogs.Add(new BookAuditLog
+                        {
+                            BookId = book.Id,
+                            ChangeType = "AuthorAdded",
+                            FieldName = "Authors",
+                            NewValue = author.Name,
+                            Description = $"Author \"{author.Name}\" was added",
+                            ChangedAt = now
+                        });
+                    }
                 }
             }
         }
