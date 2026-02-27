@@ -16,6 +16,7 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
     public async Task<List<Book>> GetAllAsync()
     {
         return await _context.Books
+            .AsNoTracking()
             .Include(b => b.Authors)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
@@ -24,6 +25,7 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
     public async Task<(List<Book> Items, int TotalCount)> GetAllAsync(int pageNumber, int pageSize)
     {
         var query = _context.Books
+            .AsNoTracking()
             .Include(b => b.Authors)
             .OrderByDescending(b => b.CreatedAt);
 

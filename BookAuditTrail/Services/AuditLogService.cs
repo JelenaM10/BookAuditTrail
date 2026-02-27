@@ -8,7 +8,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
 
     public async Task<PagedResponse<AuditLogResponse>> GetAuditLogsAsync(AuditLogQueryParameters parameters)
     {
-        var query = _auditLogRepository.GetQueryable().Include(a => a.Book).AsQueryable();
+        var query = _auditLogRepository.GetQueryable().AsNoTracking().Include(a => a.Book).AsQueryable();
 
         query = ApplyFilters(query, parameters);
         query = ApplyOrdering(query, parameters);
@@ -32,7 +32,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
 
     public async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedAuditLogsAsync(AuditLogQueryParameters parameters)
     {
-        var query = _auditLogRepository.GetQueryable().AsQueryable();
+        var query = _auditLogRepository.GetQueryable().AsNoTracking().AsQueryable();
 
         query = ApplyFilters(query, parameters);
 
