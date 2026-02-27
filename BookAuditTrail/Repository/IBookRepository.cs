@@ -12,4 +12,5 @@ public interface IBookRepository
     Task<Author> AddAuthorAsync(Author author);
     Task<List<Author>> GetAuthorsByNamesAsync(IEnumerable<string> names);
     Task AddAuthorsAsync(IEnumerable<Author> authors);
+    Task SaveChangesAsync();
 }

@@ -172,8 +172,9 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
         if (auditLogs.Any())
         {
-            await _bookRepository.UpdateAsync(book);
-            await _auditLogRepository.AddRangeAsync(auditLogs);
+            book.UpdatedAt = DateTime.UtcNow;
+            _auditLogRepository.StageRange(auditLogs);
+            await _bookRepository.SaveChangesAsync();
         }
 
         return MapToResponse(book);

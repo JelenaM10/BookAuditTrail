@@ -11,6 +11,11 @@ public class AuditLogRepository(BookAuditTrailDbContext context) : IAuditLogRepo
         await _context.SaveChangesAsync();
     }
 
+    public void StageRange(IEnumerable<BookAuditLog> logs)
+    {
+        _context.BookAuditLogs.AddRange(logs);
+    }
+
     public IQueryable<BookAuditLog> GetQueryable()
     {
         return _context.BookAuditLogs.AsQueryable();
