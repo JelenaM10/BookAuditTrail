@@ -11,7 +11,7 @@ public class AuditLogsController(IAuditLogService auditLogService) : ControllerB
     [HttpGet]
     public async Task<ActionResult<PagedResponse<AuditLogResponse>>> GetAuditLogs([FromQuery] AuditLogQueryParameters parameters)
     {
-        if (string.IsNullOrWhiteSpace(parameters.GroupBy))
+        if (parameters.GroupBy is null)
         {
             var result = await _auditLogService.GetAuditLogsAsync(parameters);
             return Ok(result);
@@ -26,7 +26,7 @@ public class AuditLogsController(IAuditLogService auditLogService) : ControllerB
     {
         parameters.BookId = bookId;
 
-        if (string.IsNullOrWhiteSpace(parameters.GroupBy))
+        if (parameters.GroupBy is null)
         {
             var result = await _auditLogService.GetAuditLogsAsync(parameters);
             return Ok(result);

@@ -19,9 +19,9 @@ public class AuditLogQueryParameters
     public DateTime? ToDate { get; set; }
 
     // Ordering
-    public string OrderBy { get; set; } = "ChangedAt";
+    public OrderByField OrderBy { get; set; } = OrderByField.ChangedAt;
     public bool Descending { get; set; } = true;
 
     // Grouping
-    public string? GroupBy { get; set; }
+    public GroupByField? GroupBy { get; set; }
 }

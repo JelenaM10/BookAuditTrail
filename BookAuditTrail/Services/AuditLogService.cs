@@ -37,20 +37,20 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         query = ApplyFilters(query, parameters);
         query = ApplyOrdering(query, parameters);
 
-        var groupByField = (parameters.GroupBy ?? "BookId").ToLowerInvariant();
+        var groupByField = parameters.GroupBy ?? GroupByField.BookId;
 
         var allItems = await query.ToListAsync();
 
         var grouped = groupByField switch
         {
-            "bookid" => allItems.GroupBy(a => a.BookId.ToString())
+            GroupByField.BookId => allItems.GroupBy(a => a.BookId.ToString())
                 .Select(g => new GroupedAuditLogResponse
                 {
                     GroupKey = g.First().Book?.Title ?? g.Key,
                     Count = g.Count(),
                     Items = g.Select(a => MapToResponse(a)).ToList()
                 }),
-            "date" => allItems.GroupBy(a => a.ChangedAt.Date.ToString("yyyy-MM-dd"))
+            GroupByField.Date => allItems.GroupBy(a => a.ChangedAt.Date.ToString("yyyy-MM-dd"))
                 .Select(g => new GroupedAuditLogResponse
                 {
                     GroupKey = g.Key,
@@ -99,14 +99,12 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
 
     private static IQueryable<BookAuditLog> ApplyOrdering(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
     {
-        var orderBy = (parameters.OrderBy ?? "ChangedAt").ToLowerInvariant();
-
-        query = orderBy switch
+        query = parameters.OrderBy switch
         {
-            "changedat" => parameters.Descending
+            OrderByField.ChangedAt => parameters.Descending
                 ? query.OrderByDescending(a => a.ChangedAt)
                 : query.OrderBy(a => a.ChangedAt),
-            "bookid" => parameters.Descending
+            OrderByField.BookId => parameters.Descending
                 ? query.OrderByDescending(a => a.BookId)
                 : query.OrderBy(a => a.BookId),
             _ => parameters.Descending
