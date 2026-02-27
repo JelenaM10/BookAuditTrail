@@ -1,4 +1,4 @@
-namespace BookAuditTrail.Models;
+namespace BookAuditTrail;
 
 public class BookAuditLog
 {

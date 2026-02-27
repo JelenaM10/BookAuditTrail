@@ -1,15 +1,9 @@
-﻿using BookAuditTrail.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace BookAuditTrail;
 
-public class BookAuditTrailDbContext : DbContext
+public class BookAuditTrailDbContext(DbContextOptions<BookAuditTrailDbContext> options) : DbContext(options)
 {
-    public BookAuditTrailDbContext(DbContextOptions<BookAuditTrailDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<BookAuditLog> BookAuditLogs => Set<BookAuditLog>();

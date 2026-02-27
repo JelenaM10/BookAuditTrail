@@ -1,8 +1,9 @@
 namespace BookAuditTrail;
 
-public class BookService(IBookRepository bookRepository) : IBookService
+public class BookService(IBookRepository bookRepository, IAuditLogRepository auditLogRepository) : IBookService
 {
     private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IAuditLogRepository _auditLogRepository = auditLogRepository;
 
     public async Task<BookResponse> CreateBookAsync(CreateBookRequest request)
     {
