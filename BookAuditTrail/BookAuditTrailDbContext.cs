@@ -18,6 +18,7 @@ public class BookAuditTrailDbContext(DbContextOptions<BookAuditTrailDbContext> o
             entity.Property(b => b.Title).HasMaxLength(500).IsRequired();
             entity.Property(b => b.ShortDescription).HasMaxLength(2000);
             entity.Property(b => b.PublishDate).IsRequired();
+            entity.HasIndex(b => b.CreatedAt);
 
             entity.HasMany(b => b.Authors)
                   .WithMany(a => a.Books)
@@ -46,9 +47,7 @@ public class BookAuditTrailDbContext(DbContextOptions<BookAuditTrailDbContext> o
             entity.Property(a => a.Description).HasMaxLength(2000).IsRequired();
             entity.Property(a => a.ChangedAt).IsRequired();
 
-            entity.HasIndex(a => a.BookId);
-            entity.HasIndex(a => a.ChangedAt);
-            entity.HasIndex(a => a.ChangeType);
+            entity.HasIndex(a => new { a.BookId, a.ChangedAt });
         });
     }
 }

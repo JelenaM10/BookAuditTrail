@@ -4,6 +4,7 @@ using BookAuditTrail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookAuditTrail.Migrations
 {
     [DbContext(typeof(BookAuditTrailDbContext))]
-    partial class BookAuditTrailDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227215421_UpdateAuditLogIndexes")]
+    partial class UpdateAuditLogIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
