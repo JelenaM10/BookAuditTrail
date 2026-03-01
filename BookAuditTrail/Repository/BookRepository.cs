@@ -46,12 +46,6 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
             .ToListAsync();
     }
 
-    public async Task AddAuthorsAsync(IEnumerable<Author> authors)
-    {
-        await _context.Authors.AddRangeAsync(authors);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

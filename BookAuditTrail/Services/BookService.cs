@@ -70,13 +70,11 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
     public async Task<BookResponse> UpdateBookAsync(int id, UpdateBookRequest request)
     {
-        // TODO: Consider wrapping book updates, author changes, and audit logs in the same transaction / SaveChangesAsync
-
         var book = await _bookRepository.GetByIdAsync(id)
          ?? throw new KeyNotFoundException($"Book with id {id} not found");
 
-        var auditLogs = new List<BookAuditLog>();
         var now = DateTime.UtcNow;
+        var auditLogs = new List<BookAuditLog>();
 
         if (request.Title != null && request.Title != book.Title)
         {
@@ -132,7 +130,7 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
         if (auditLogs.Any())
         {
             book.UpdatedAt = now;
-            _auditLogRepository.StageRange(auditLogs);
+            _auditLogRepository.AddRange(auditLogs);
             await _bookRepository.SaveChangesAsync();
         }
 
@@ -206,7 +204,6 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
         foreach (var author in existingAuthors)
         {
             book.Authors.Add(author);
-
             logs.Add(new BookAuditLog
             {
                 BookId = book.Id,
@@ -222,7 +219,7 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
         if (missingNames.Any())
         {
             var newAuthors = missingNames.Select(name => new Author { Name = name }).ToList();
-            await _bookRepository.AddAuthorsAsync(newAuthors);
+            _bookRepository.AddAuthors(newAuthors);
 
             foreach (var author in newAuthors)
             {
