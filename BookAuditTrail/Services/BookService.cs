@@ -7,6 +7,8 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
     public async Task<BookResponse> CreateBookAsync(CreateBookRequest request)
     {
+        // TODO: Consider wrapping adding authors and the book in the same transaction / SaveChangesAsync
+
         var now = DateTime.UtcNow;
 
         var book = new Book
@@ -68,6 +70,8 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
     public async Task<BookResponse> UpdateBookAsync(int id, UpdateBookRequest request)
     {
+        // TODO: Consider wrapping book updates, author changes, and audit logs in the same transaction / SaveChangesAsync
+
         var book = await _bookRepository.GetByIdAsync(id)
          ?? throw new KeyNotFoundException($"Book with id {id} not found");
 
