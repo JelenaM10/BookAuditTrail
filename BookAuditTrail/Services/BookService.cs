@@ -7,8 +7,6 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
     public async Task<BookResponse> CreateBookAsync(CreateBookRequest request)
     {
-        // TODO: Consider wrapping adding authors and the book in the same transaction / SaveChangesAsync
-
         var now = DateTime.UtcNow;
 
         var book = new Book
@@ -28,19 +26,19 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
             .Select(name => new Author { Name = name })
             .ToList();
 
-        if (newAuthors.Any())
-            await _bookRepository.AddAuthorsAsync(newAuthors);
-
         foreach (var author in existingAuthors.Concat(newAuthors))
             book.Authors.Add(author);
 
-        book = await _bookRepository.AddAsync(book);
+        _bookRepository.Add(book);
+
+        if (newAuthors.Any())
+            _bookRepository.AddAuthors(newAuthors);
 
         var auditLogs = new List<BookAuditLog>
         {
             new()
             {
-                BookId = book.Id,
+                Book = book,
                 ChangeType = "Created",
                 FieldName = "Book",
                 NewValue = book.Title,
@@ -54,7 +52,7 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
             var authorNames = string.Join(", ", book.Authors.Select(a => a.Name));
             auditLogs.Add(new BookAuditLog
             {
-                BookId = book.Id,
+                Book = book,
                 ChangeType = "Created",
                 FieldName = "Authors",
                 NewValue = authorNames,
@@ -63,7 +61,9 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
             });
         }
 
-        await _auditLogRepository.AddRangeAsync(auditLogs);
+        _auditLogRepository.AddRange(auditLogs);
+
+        await _bookRepository.SaveChangesAsync();
 
         return MapToResponse(book);
     }

@@ -5,10 +5,9 @@ public class AuditLogRepository(BookAuditTrailDbContext context) : IAuditLogRepo
 {
     private readonly BookAuditTrailDbContext _context = context;
 
-    public async Task AddRangeAsync(IEnumerable<BookAuditLog> logs)
+    public void AddRange(IEnumerable<BookAuditLog> logs)
     {
         _context.BookAuditLogs.AddRange(logs);
-        await _context.SaveChangesAsync();
     }
 
     public void StageRange(IEnumerable<BookAuditLog> logs)

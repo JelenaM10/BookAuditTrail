@@ -39,13 +39,6 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
         return (items, totalCount);
     }
 
-    public async Task<Book> AddAsync(Book book)
-    {
-        _context.Books.Add(book);
-        await _context.SaveChangesAsync();
-        return book;
-    }
-
     public async Task<List<Author>> GetAuthorsByNamesAsync(IEnumerable<string> names)
     {
         return await _context.Authors
@@ -62,5 +55,15 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public void Add(Book book)
+    {
+        _context.Books.Add(book);
+    }
+
+    public void AddAuthors(IEnumerable<Author> authors)
+    {
+        _context.Authors.AddRange(authors);
     }
 }
