@@ -7,13 +7,15 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
     public async Task<BookResponse> CreateBookAsync(CreateBookRequest request)
     {
+        var now = DateTime.UtcNow;
+
         var book = new Book
         {
             Title = request.Title,
             ShortDescription = request.ShortDescription,
             PublishDate = request.PublishDate,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         var existingAuthors = await _bookRepository.GetAuthorsByNamesAsync(request.Authors);
@@ -41,7 +43,7 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
                 FieldName = "Book",
                 NewValue = book.Title,
                 Description = $"Book \"{book.Title}\" was created",
-                ChangedAt = DateTime.UtcNow
+                ChangedAt = now
             }
         };
 
@@ -55,7 +57,7 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
                 FieldName = "Authors",
                 NewValue = authorNames,
                 Description = $"Authors set to: {authorNames}",
-                ChangedAt = DateTime.UtcNow
+                ChangedAt = now
             });
         }
 
@@ -119,73 +121,13 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
 
         if (request.Authors is not null)
         {
-            var current = book.Authors.Select(a => a.Name).ToHashSet();
-            var incoming = request.Authors.ToHashSet();
-
-            var toAdd = incoming.Except(current).ToList();
-            var toRemove = current.Except(incoming).ToList();
-
-            foreach (var author in book.Authors.Where(a => toRemove.Contains(a.Name)).ToList())
-            {
-                book.Authors.Remove(author);
-
-                auditLogs.Add(new BookAuditLog
-                {
-                    BookId = book.Id,
-                    ChangeType = "AuthorRemoved",
-                    FieldName = "Authors",
-                    OldValue = author.Name,
-                    Description = $"Author \"{author.Name}\" was removed",
-                    ChangedAt = now
-                });
-            }
-
-            if (toAdd.Any())
-            {
-                var existingAuthors = await _bookRepository.GetAuthorsByNamesAsync(toAdd);
-                var existingNames = existingAuthors.Select(a => a.Name).ToHashSet();
-
-                foreach (var author in existingAuthors)
-                {
-                    book.Authors.Add(author);
-
-                    auditLogs.Add(new BookAuditLog
-                    {
-                        BookId = book.Id,
-                        ChangeType = "AuthorAdded",
-                        FieldName = "Authors",
-                        NewValue = author.Name,
-                        Description = $"Author \"{author.Name}\" was added",
-                        ChangedAt = now
-                    });
-                }
-
-                var missingNames = toAdd.Except(existingNames).ToList();
-                if (missingNames.Any())
-                {
-                    var newAuthors = missingNames.Select(name => new Author { Name = name }).ToList();
-                    await _bookRepository.AddAuthorsAsync(newAuthors);
-                    ((List<Author>)book.Authors).AddRange(newAuthors);
-
-                    foreach (var author in newAuthors)
-                    {
-                        auditLogs.Add(new BookAuditLog
-                        {
-                            BookId = book.Id,
-                            ChangeType = "AuthorAdded",
-                            FieldName = "Authors",
-                            NewValue = author.Name,
-                            Description = $"Author \"{author.Name}\" was added",
-                            ChangedAt = now
-                        });
-                    }
-                }
-            }
+            var authorsAudit = await UpdateAuthorsAsync(book, request.Authors, now);
+            auditLogs.AddRange(authorsAudit);
         }
 
         if (auditLogs.Any())
         {
-            book.UpdatedAt = DateTime.UtcNow;
+            book.UpdatedAt = now;
             _auditLogRepository.StageRange(auditLogs);
             await _bookRepository.SaveChangesAsync();
         }
@@ -229,5 +171,71 @@ public class BookService(IBookRepository bookRepository, IAuditLogRepository aud
             CreatedAt = book.CreatedAt,
             UpdatedAt = book.UpdatedAt
         };
+    }
+
+    private async Task<List<BookAuditLog>> UpdateAuthorsAsync(Book book, IEnumerable<string> newAuthorNames, DateTime now)
+    {
+        var logs = new List<BookAuditLog>();
+        var currentNames = book.Authors.Select(a => a.Name).ToHashSet();
+        var incoming = newAuthorNames.ToHashSet();
+
+        var toAdd = incoming.Except(currentNames).ToList();
+        var toRemove = currentNames.Except(incoming).ToList();
+
+        foreach (var author in book.Authors.Where(a => toRemove.Contains(a.Name)).ToList())
+        {
+            book.Authors.Remove(author);
+            logs.Add(new BookAuditLog
+            {
+                BookId = book.Id,
+                ChangeType = "AuthorRemoved",
+                FieldName = "Authors",
+                OldValue = author.Name,
+                Description = $"Author \"{author.Name}\" was removed",
+                ChangedAt = now
+            });
+        }
+
+        var existingAuthors = await _bookRepository.GetAuthorsByNamesAsync(toAdd);
+        var existingNames = existingAuthors.Select(a => a.Name).ToHashSet();
+
+        foreach (var author in existingAuthors)
+        {
+            book.Authors.Add(author);
+
+            logs.Add(new BookAuditLog
+            {
+                BookId = book.Id,
+                ChangeType = "AuthorAdded",
+                FieldName = "Authors",
+                NewValue = author.Name,
+                Description = $"Author \"{author.Name}\" was added",
+                ChangedAt = now
+            });
+        }
+
+        var missingNames = toAdd.Except(existingNames).ToList();
+        if (missingNames.Any())
+        {
+            var newAuthors = missingNames.Select(name => new Author { Name = name }).ToList();
+            await _bookRepository.AddAuthorsAsync(newAuthors);
+
+            foreach (var author in newAuthors)
+            {
+                book.Authors.Add(author);
+
+                logs.Add(new BookAuditLog
+                {
+                    BookId = book.Id,
+                    ChangeType = "AuthorAdded",
+                    FieldName = "Authors",
+                    NewValue = author.Name,
+                    Description = $"Author \"{author.Name}\" was added",
+                    ChangedAt = now
+                });
+            }
+        }
+
+        return logs;
     }
 }

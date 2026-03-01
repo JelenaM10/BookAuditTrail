@@ -10,10 +10,6 @@ public class GroupedAuditLogQueryParameters : IAuditLogFilter
     public DateTime? FromDate { get; set; }
     public DateTime? ToDate { get; set; }
 
-    // Ordering
-    public OrderByField OrderBy { get; set; } = OrderByField.ChangedAt;
-    public bool Descending { get; set; } = true;
-
     // Grouping
     public GroupByField? GroupBy { get; set; }
 }
