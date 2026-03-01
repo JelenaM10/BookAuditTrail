@@ -46,31 +46,11 @@ public class BookRepository(BookAuditTrailDbContext context) : IBookRepository
         return book;
     }
 
-    public async Task UpdateAsync(Book book)
-    {
-        book.UpdatedAt = DateTime.UtcNow;
-        _context.Books.Update(book);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task<List<Author>> GetAuthorsByNamesAsync(IEnumerable<string> names)
     {
         return await _context.Authors
             .Where(a => names.Contains(a.Name))
             .ToListAsync();
-    }
-
-    public async Task<Author?> GetAuthorByNameAsync(string name)
-    {
-        return await _context.Authors
-            .FirstOrDefaultAsync(a => a.Name == name);
-    }
-
-    public async Task<Author> AddAuthorAsync(Author author)
-    {
-        _context.Authors.Add(author);
-        await _context.SaveChangesAsync();
-        return author;
     }
 
     public async Task AddAuthorsAsync(IEnumerable<Author> authors)

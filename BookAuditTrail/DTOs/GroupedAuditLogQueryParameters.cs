@@ -1,6 +1,6 @@
 namespace BookAuditTrail;
 
-public class AuditLogQueryParameters : IAuditLogFilter
+public class GroupedAuditLogQueryParameters : IAuditLogFilter
 {
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
@@ -13,4 +13,7 @@ public class AuditLogQueryParameters : IAuditLogFilter
     // Ordering
     public OrderByField OrderBy { get; set; } = OrderByField.ChangedAt;
     public bool Descending { get; set; } = true;
+
+    // Grouping
+    public GroupByField? GroupBy { get; set; }
 }

@@ -11,28 +11,32 @@ public class AuditLogsController(IAuditLogService auditLogService) : ControllerB
     [HttpGet]
     public async Task<ActionResult<PagedResponse<AuditLogResponse>>> GetAuditLogs([FromQuery] AuditLogQueryParameters parameters)
     {
-        if (parameters.GroupBy is null)
-        {
-            var result = await _auditLogService.GetAuditLogsAsync(parameters);
-            return Ok(result);
-        }
-
-        var grouped = await _auditLogService.GetGroupedAuditLogsAsync(parameters);
-        return Ok(grouped);
+        var result = await _auditLogService.GetAuditLogsAsync(parameters);
+        return Ok(result);
     }
 
-    [HttpGet("book/{bookId}")]
+    [HttpGet("grouped")]
+    public async Task<ActionResult<PagedResponse<GroupedAuditLogResponse>>> GetGroupedAuditLogs([FromQuery] GroupedAuditLogQueryParameters parameters)
+    {
+        var result = await _auditLogService.GetGroupedAuditLogsAsync(parameters);
+        return Ok(result);
+    }
+
+    [HttpGet("books/{bookId}")]
     public async Task<ActionResult<PagedResponse<AuditLogResponse>>> GetAuditLogsByBook(int bookId, [FromQuery] AuditLogQueryParameters parameters)
     {
         parameters.BookId = bookId;
 
-        if (parameters.GroupBy is null)
-        {
-            var result = await _auditLogService.GetAuditLogsAsync(parameters);
-            return Ok(result);
-        }
+        var result = await _auditLogService.GetAuditLogsAsync(parameters);
+        return Ok(result);
+    }
 
-        var grouped = await _auditLogService.GetGroupedAuditLogsAsync(parameters);
-        return Ok(grouped);
+    [HttpGet("books/{bookId}/grouped")]
+    public async Task<ActionResult<PagedResponse<GroupedAuditLogResponse>>> GetGroupedAuditLogsByBook(int bookId, [FromQuery] GroupedAuditLogQueryParameters parameters)
+    {
+        parameters.BookId = bookId;
+
+        var result = await _auditLogService.GetGroupedAuditLogsAsync(parameters);
+        return Ok(result);
     }
 }

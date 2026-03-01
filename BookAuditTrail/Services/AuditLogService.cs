@@ -30,7 +30,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         };
     }
 
-    public async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedAuditLogsAsync(AuditLogQueryParameters parameters)
+    public async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedAuditLogsAsync(GroupedAuditLogQueryParameters parameters)
     {
         var query = _auditLogRepository.GetQueryable().AsNoTracking().AsQueryable();
 
@@ -44,7 +44,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         return await GetGroupedByBookIdAsync(query, parameters);
     }
 
-    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByBookIdAsync(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
+    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByBookIdAsync(IQueryable<BookAuditLog> query, GroupedAuditLogQueryParameters parameters)
     {
         var groupQuery = query
             .GroupBy(a => a.BookId)
@@ -86,7 +86,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         };
     }
 
-    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByDateAsync(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
+    private static async Task<PagedResponse<GroupedAuditLogResponse>> GetGroupedByDateAsync(IQueryable<BookAuditLog> query, GroupedAuditLogQueryParameters parameters)
     {
         var groupQuery = query
             .GroupBy(a => a.ChangedAt.Date)
@@ -128,7 +128,7 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         };
     }
 
-    private static IQueryable<BookAuditLog> ApplyFilters(IQueryable<BookAuditLog> query, AuditLogQueryParameters parameters)
+    private static IQueryable<BookAuditLog> ApplyFilters(IQueryable<BookAuditLog> query, IAuditLogFilter parameters)
     {
         if (parameters.BookId.HasValue)
             query = query.Where(a => a.BookId == parameters.BookId.Value);
